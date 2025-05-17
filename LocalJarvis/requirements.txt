@@ -1,0 +1,14 @@
+flask==2.3.3
+pyyaml==6.0.1
+requests==2.31.0
+transformers==4.35.2
+torch==2.1.0+cu118 # CUDA 11.8
+openai-whisper==20230314
+fastapi==0.103.2
+uvicorn==0.23.2
+gtts==2.5.1
+pyttsx3==2.90
+llama-cpp-python==0.2.72
+pytest==7.4.3
+python-dotenv==1.0.1
+loguru==0.7.2

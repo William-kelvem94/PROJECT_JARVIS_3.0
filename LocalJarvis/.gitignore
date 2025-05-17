@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+memory.db
+.venv/
+*.log
+temp.wav

@@ -1,0 +1,27 @@
+stt:
+  docker_url: "http://whisper:5001"
+  timeout: 10
+  language: "pt"
+tts:
+  docker_url: "http://tts:5002"
+  voice: "default"
+  offline: false
+llm:
+  model_path: "distilbert-base-uncased"
+  max_tokens: 512
+memory:
+  db_path: "/app/memory/memory.db"
+  user_id: "default"
+executor:
+  allowed_commands:
+    - "notepad"
+    - "calc"
+    - "cmd.exe /c dir"
+    - "firefox"
+    - "vlc"
+plugins:
+  media_control:
+    enabled: true
+  weather_plugin:
+    enabled: false
+    api_key: ""

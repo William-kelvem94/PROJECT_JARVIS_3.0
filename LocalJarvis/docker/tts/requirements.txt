@@ -1,0 +1,5 @@
+# requirements para o serviço TTS (gtts + pyttsx3 + fastapi + uvicorn)
+fastapi
+uvicorn
+gtts
+pyttsx3

@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  core:
+    build: ./docker/core
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./memory:/app/memory
+      - ./config:/app/config
+      - ./frontend:/app/frontend
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - whisper
+      - tts
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  whisper:
+    build: ./docker/whisper
+    ports:
+      - "5001:5001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  tts:
+    build: ./docker/tts
+    ports:
+      - "5002:5002"
+    environment:
+      - PYTHONUNBUFFERED=1
