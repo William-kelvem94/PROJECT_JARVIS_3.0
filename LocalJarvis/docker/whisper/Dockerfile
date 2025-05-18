@@ -7,8 +7,9 @@ RUN apt-get update && \
     apt-get install -y ffmpeg python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir fastapi uvicorn openai-whisper torch==2.0.1
+    # Dependências críticas para FastAPI e compatibilidade numpy
+    pip3 install --no-cache-dir "numpy<2" fastapi uvicorn openai-whisper torch==2.0.1 python-multipart
 
-COPY whisper_server.py /app/whisper_server.py
+COPY docker/whisper/whisper_server.py /app/whisper_server.py
 WORKDIR /app
 CMD ["uvicorn", "whisper_server:app", "--host", "0.0.0.0", "--port", "5001"]

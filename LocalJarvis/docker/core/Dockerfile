@@ -13,6 +13,8 @@ RUN apt-get update && \
 # Copia requirements
 COPY requirements.txt .
 RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir "numpy<2" && \
+    pip3 install --no-cache-dir torch==2.0.1 && \
     pip3 install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código

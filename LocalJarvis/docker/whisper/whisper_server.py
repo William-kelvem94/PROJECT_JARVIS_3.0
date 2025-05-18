@@ -2,9 +2,14 @@ from fastapi import FastAPI, UploadFile
 import whisper
 import logging
 import tempfile
+try:
+    import multipart
+except ImportError:
+    logging.warning("python-multipart não está instalado! Uploads multipart podem falhar.")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.info("Servidor Whisper iniciado com sucesso.")
 
 app = FastAPI()
 model = whisper.load_model("base")

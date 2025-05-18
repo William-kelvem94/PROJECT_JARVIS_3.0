@@ -1,7 +1,9 @@
-version: '3.8'
+# docker-compose.yml compatível com Compose v2+
 services:
   core:
-    build: ./docker/core
+    build:
+      context: .
+      dockerfile: ./docker/core/Dockerfile
     ports:
       - "5000:5000"
     volumes:
@@ -13,28 +15,17 @@ services:
     depends_on:
       - whisper
       - tts
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
   whisper:
-    build: ./docker/whisper
+    build:
+      context: .
+      dockerfile: ./docker/whisper/Dockerfile
     ports:
       - "5001:5001"
     environment:
       - PYTHONUNBUFFERED=1
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
   tts:
-    build: ./docker/tts
+    build:
+      context: ./docker/tts
     ports:
       - "5002:5002"
     environment:

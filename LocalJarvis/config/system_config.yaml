@@ -7,7 +7,7 @@ tts:
   voice: "default"
   offline: false
 llm:
-  model_path: "distilbert-base-uncased"
+  model_path: "gpt2"
   max_tokens: 512
 memory:
   db_path: "/app/memory/memory.db"

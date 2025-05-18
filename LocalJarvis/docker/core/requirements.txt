@@ -11,3 +11,4 @@ pyttsx3==2.90
 llama-cpp-python==0.2.72
 python-dotenv==1.0.1
 loguru==0.7.2
+numpy<2
