@@ -65,6 +65,52 @@ async function sendAudio() {
     }
 }
 
+async function trainModel() {
+    const modelPath = document.getElementById('model-path').value || 'gpt2';
+    const outputDir = document.getElementById('output-dir').value || './fine_tuned_model';
+    const datasetInput = document.getElementById('dataset-file');
+    const statusDiv = document.getElementById('train-status');
+    if (!datasetInput.files.length) {
+        statusDiv.innerText = 'Selecione um arquivo de dataset (.json, .txt, .csv)';
+        return;
+    }
+    const file = datasetInput.files[0];
+    const formData = new FormData();
+    formData.append('dataset', file);
+    formData.append('model_path', modelPath);
+    formData.append('output_dir', outputDir);
+
+    statusDiv.innerText = 'Enviando dataset e iniciando treinamento...';
+    try {
+        // Envia o arquivo para um endpoint temporário, depois chama /train
+        // Aqui, para simplificação, espera-se que o backend aceite dataset_path como caminho já disponível
+        // Em produção, seria necessário um endpoint para upload do arquivo
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const datasetContent = e.target.result;
+            const response = await fetch('/train', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model_path: modelPath,
+                    dataset_path: file.name, // O backend deve saber onde salvar
+                    output_dir: outputDir,
+                    dataset_content: datasetContent
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                statusDiv.innerText = data.message;
+            } else {
+                statusDiv.innerText = data.error || 'Erro no treinamento';
+            }
+        };
+        reader.readAsText(file);
+    } catch (error) {
+        statusDiv.innerText = 'Erro: ' + error.message;
+    }
+}
+
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.body.classList.toggle('dark');
 });

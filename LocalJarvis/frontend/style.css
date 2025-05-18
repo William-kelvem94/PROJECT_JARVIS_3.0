@@ -92,3 +92,26 @@ button:hover {
 #mic-button.recording:hover {
     background-color: #cc0000;
 }
+
+.train-group {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+body.dark .train-group {
+    background: #222;
+}
+
+.train-group input, .train-group button {
+    margin: 5px 0;
+    display: block;
+    width: 100%;
+}
+
+#train-status {
+    margin-top: 10px;
+    font-weight: bold;
+}

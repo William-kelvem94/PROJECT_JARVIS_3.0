@@ -18,6 +18,14 @@
                 <img src="/assets/microphone.png" alt="Microfone" width="20">
             </button>
         </div>
+        <div class="train-group">
+            <h2>Treinar IA</h2>
+            <input type="text" id="model-path" placeholder="Modelo base (ex: gpt2)">
+            <input type="text" id="output-dir" placeholder="Diretório de saída">
+            <input type="file" id="dataset-file" accept=".json,.txt,.csv">
+            <button onclick="trainModel()">Treinar</button>
+            <div id="train-status"></div>
+        </div>
     </div>
     <script src="/app.js"></script>
     <script src="/chat.js"></script>

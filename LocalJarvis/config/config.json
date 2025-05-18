@@ -1,0 +1,29 @@
+{
+  "personality_profiles": [
+    "Formal",
+    "Descontraído",
+    "Técnico"
+  ],
+  "operation_modes": [
+    "Trabalho",
+    "Lazer",
+    "Assistente de Voz"
+  ],
+  "custom_commands": {},
+  "plugins": {
+    "media_control": {"enabled": true},
+    "weather_plugin": {"enabled": false},
+    "nlp_plugin": {"enabled": true},
+    "audio_plugin": {"enabled": true},
+    "vision_plugin": {"enabled": true},
+    "automation_plugin": {"enabled": true},
+    "data_plugin": {"enabled": true},
+    "content_plugin": {"enabled": true},
+    "games_plugin": {"enabled": true},
+    "assistant_plugin": {"enabled": true},
+    "security_plugin": {"enabled": true},
+    "education_plugin": {"enabled": true}
+  },
+  "default_personality": "Formal",
+  "default_mode": "Trabalho"
+}
