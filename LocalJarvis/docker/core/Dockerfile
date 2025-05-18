@@ -10,9 +10,11 @@ RUN apt-get update && \
     apt-get install -y build-essential espeak ffmpeg libasound2 libespeak1 libglib2.0-0 python3-dev python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-# Copia requirements e instala dependências Python (torch com CUDA, pyttsx3, gtts, whisper, etc)
-COPY docker/core/requirements.txt .
+# Copia requirements
+COPY requirements.txt .
+# Instala torch com CUDA 11.8 do repositório oficial do PyTorch
 RUN pip3 install --upgrade pip && \
+    pip3 install torch==2.1.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118 && \
     pip3 install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código

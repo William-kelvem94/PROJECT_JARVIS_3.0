@@ -2,7 +2,7 @@ flask==2.3.3
 pyyaml==6.0.1
 requests==2.31.0
 transformers==4.35.2
-torch==2.1.0+cu118 # CUDA 11.8
+# torch removido para instalação manual no Dockerfile
 openai-whisper==20230314
 fastapi==0.103.2
 uvicorn==0.23.2
