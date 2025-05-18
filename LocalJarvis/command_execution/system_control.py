@@ -36,3 +36,8 @@ class SystemControl:
         except subprocess.SubprocessError as e:
             logger.error(f"Erro ao ajustar volume: {e}")
             return f"Erro: {str(e)}"
+
+    def play_pause_media(self):
+        """Stub para play/pause de mídia. Deve ser implementado para cada SO."""
+        logger.info("Play/Pause de mídia acionado (stub).")
+        return "Play/Pause de mídia acionado."

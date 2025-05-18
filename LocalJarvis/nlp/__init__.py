@@ -1,0 +1,1 @@
+# Módulo de NLP: inicialização

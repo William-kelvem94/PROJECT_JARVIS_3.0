@@ -1,0 +1,3 @@
+# Núcleo do assistente: inicialização e gerenciamento principal
+
+# ...existing code...

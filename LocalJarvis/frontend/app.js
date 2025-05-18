@@ -17,7 +17,13 @@ async function sendMessage() {
             body: JSON.stringify({ text: input })
         });
         const data = await response.json();
-        chatBox.innerHTML += `<p><strong>Jarvis:</strong> ${data.response}</p>`;
+        if (data.response) {
+            chatBox.innerHTML += `<p><strong>Jarvis:</strong> ${data.response}</p>`;
+        } else if (data.error) {
+            chatBox.innerHTML += `<p><strong>Erro:</strong> ${data.error}</p>`;
+        } else {
+            chatBox.innerHTML += `<p><strong>Erro:</strong> Resposta inesperada do servidor.</p>`;
+        }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
         chatBox.innerHTML += `<p><strong>Erro:</strong> ${error.message}</p>`;
@@ -66,48 +72,52 @@ async function sendAudio() {
 }
 
 async function trainModel() {
-    const modelPath = document.getElementById('model-path').value || 'gpt2';
-    const outputDir = document.getElementById('output-dir').value || './fine_tuned_model';
-    const datasetInput = document.getElementById('dataset-file');
-    const statusDiv = document.getElementById('train-status');
-    if (!datasetInput.files.length) {
-        statusDiv.innerText = 'Selecione um arquivo de dataset (.json, .txt, .csv)';
+    // Nova lógica: usa o campo principal de texto para enviar comando de treinamento
+    const input = document.getElementById('user-input').value;
+    if (!input) {
+        const statusDiv = document.getElementById('train-status');
+        statusDiv.innerText = 'Digite o comando de treinamento no campo principal.';
         return;
     }
-    const file = datasetInput.files[0];
-    const formData = new FormData();
-    formData.append('dataset', file);
-    formData.append('model_path', modelPath);
-    formData.append('output_dir', outputDir);
-
-    statusDiv.innerText = 'Enviando dataset e iniciando treinamento...';
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML += `<p><strong>Você:</strong> ${input}</p>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    const statusDiv = document.getElementById('train-status');
+    statusDiv.innerText = 'Enviando comando de treinamento...';
     try {
-        // Envia o arquivo para um endpoint temporário, depois chama /train
-        // Aqui, para simplificação, espera-se que o backend aceite dataset_path como caminho já disponível
-        // Em produção, seria necessário um endpoint para upload do arquivo
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const datasetContent = e.target.result;
-            const response = await fetch('/train', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model_path: modelPath,
-                    dataset_path: file.name, // O backend deve saber onde salvar
-                    output_dir: outputDir,
-                    dataset_content: datasetContent
-                })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                statusDiv.innerText = data.message;
-            } else {
-                statusDiv.innerText = data.error || 'Erro no treinamento';
-            }
-        };
-        reader.readAsText(file);
+        const response = await fetch('/text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: input })
+        });
+        const data = await response.json();
+        if (data.response) {
+            chatBox.innerHTML += `<p><strong>Jarvis:</strong> ${data.response}</p>`;
+            statusDiv.innerText = 'Treinamento solicitado. Veja resposta acima.';
+        } else if (data.error) {
+            chatBox.innerHTML += `<p><strong>Erro:</strong> ${data.error}</p>`;
+            statusDiv.innerText = data.error;
+        } else {
+            chatBox.innerHTML += `<p><strong>Erro:</strong> Resposta inesperada do servidor.</p>`;
+            statusDiv.innerText = 'Resposta inesperada do servidor.';
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
+        chatBox.innerHTML += `<p><strong>Erro:</strong> ${error.message}</p>`;
         statusDiv.innerText = 'Erro: ' + error.message;
+    }
+    document.getElementById('user-input').value = '';
+}
+
+async function runTests() {
+    const outputBox = document.getElementById('test-output');
+    outputBox.value = 'Executando testes... Aguarde.';
+    try {
+        const response = await fetch('/run_tests', { method: 'POST' });
+        const data = await response.json();
+        outputBox.value = data.output;
+    } catch (error) {
+        outputBox.value = 'Erro ao rodar testes: ' + error.message;
     }
 }
 

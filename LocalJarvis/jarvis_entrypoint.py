@@ -63,6 +63,30 @@ class Jarvis:
 
     def process_input(self, input_data, input_type='text'):
         """Processa entrada de texto ou áudio e retorna a resposta."""
+        # Intercepta comando de treinamento antes de qualquer processamento
+        if input_type == 'text' and str(input_data).strip().lower().startswith(('treinar', 'train')):
+            import re
+            modelo = 'gpt2'
+            output_dir = './fine_tuned_model'
+            dataset_content = None
+            m = re.search(r'modelo\s+(\w+)', input_data, re.IGNORECASE)
+            if m:
+                modelo = m.group(1)
+            d = re.search(r'dataset\s+(.+)', input_data, re.IGNORECASE)
+            if d:
+                dataset_content = d.group(1)
+            if not dataset_content:
+                return "Comando de treinamento detectado, mas nenhum dataset fornecido. Use: treinar modelo <nome> com dataset <dados>"
+            try:
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.txt') as tmp:
+                    tmp.write(dataset_content)
+                    dataset_path = tmp.name
+                training.fine_tune_model(modelo, dataset_path, output_dir)
+                return f"Treinamento concluído! Modelo salvo em {output_dir}"
+            except Exception as e:
+                logger.error(f"Erro no treinamento: {e}")
+                return f"Erro no treinamento: {e}"
         try:
             # Converte áudio para texto, se necessário
             if input_type == 'audio':
@@ -92,11 +116,35 @@ class Jarvis:
 
             # Após gerar resposta, verifica se algum plugin pode ser chamado
             for plugin_name, plugin in self.plugins.items():
+                # Chama process se existir e aceitar argumento
                 if hasattr(plugin, 'process'):
-                    plugin_result = plugin.process(text)
-                    if plugin_result:
-                        response += f"\n[{plugin_name}]: {plugin_result}"
-                        logger.info(f"Plugin {plugin_name} executado.")
+                    try:
+                        result = plugin.process(text)
+                        if result:
+                            response += f"\n[{plugin_name}]: {result}"
+                            logger.info(f"Plugin {plugin_name} executado.")
+                    except TypeError as e:
+                        # Se process não aceita argumento, tenta handle
+                        if hasattr(plugin, 'handle'):
+                            try:
+                                result = plugin.handle(text)
+                                if result:
+                                    response += f"\n[{plugin_name}]: {result}"
+                                    logger.info(f"Plugin {plugin_name} executado via handle.")
+                            except Exception as e2:
+                                logger.warning(f"Plugin {plugin_name} falhou ao processar via handle: {e2}")
+                        else:
+                            logger.warning(f"Plugin {plugin_name} não tem método process(text) nem handle(text): {e}")
+                    except Exception as e:
+                        logger.warning(f"Plugin {plugin_name} falhou ao processar: {e}")
+                elif hasattr(plugin, 'handle'):
+                    try:
+                        result = plugin.handle(text)
+                        if result:
+                            response += f"\n[{plugin_name}]: {result}"
+                            logger.info(f"Plugin {plugin_name} executado via handle.")
+                    except Exception as e:
+                        logger.warning(f"Plugin {plugin_name} falhou ao processar via handle: {e}")
                 # Sistema de eventos: envia evento para plugins que implementam on_event
                 if hasattr(plugin, 'on_event'):
                     try:
@@ -241,6 +289,17 @@ def get_custom_commands():
         return jsonify(jarvis.get_custom_commands())
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/run_tests', methods=['POST'])
+def run_tests():
+    """Endpoint para rodar testes automatizados e retornar o resultado como texto."""
+    import subprocess
+    try:
+        result = subprocess.run(['pytest', 'tests/', '--maxfail=10', '--disable-warnings', '-q'], capture_output=True, text=True, timeout=60)
+        output = result.stdout + '\n' + result.stderr
+        return {'output': output}
+    except Exception as e:
+        return {'output': f'Erro ao rodar testes: {e}'}
 
 if __name__ == "__main__":
     logger.info("Iniciando servidor web na porta 5000...")

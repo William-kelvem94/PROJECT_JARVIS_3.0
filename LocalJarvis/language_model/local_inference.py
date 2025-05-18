@@ -35,6 +35,9 @@ class LocalInference:
                 action = None
                 if "abrir" in response.lower():
                     action = response.split('abrir ')[-1].split(' ')[0]
+                # Fallback amigável
+                if not response.strip() or response.strip() == prompt.strip():
+                    response = "Desculpe, não entendi. Pode repetir de outra forma?"
                 return response, action
 
             if not self.model:
@@ -45,11 +48,12 @@ class LocalInference:
 
             prompt = f"{context}\nUsuário: {text}\nAssistente: "
             response = self.model(prompt, max_length=self.max_tokens, num_return_sequences=1)[0]['generated_text']
-            
             action = None
             if "abrir" in response.lower():
                 action = response.split('abrir ')[-1].split(' ')[0]
-            
+            # Fallback amigável
+            if not response.strip() or response.strip() == prompt.strip():
+                response = "Desculpe, não entendi. Pode repetir de outra forma?"
             logger.info(f"Resposta gerada: {response[:50]}...")
             return response, action
         except Exception as e:

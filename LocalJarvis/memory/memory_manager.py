@@ -11,13 +11,19 @@ class MemoryManager:
         self.db_path = db_path
         self.user_id = user_id
         self.lock = threading.Lock()
+        self._is_memory = (db_path == ':memory:')
+        self.conn = None
         self._init_db()
 
     def _init_db(self):
         """Inicializa o banco de dados SQLite."""
         try:
             with self.lock:
-                conn = sqlite3.connect(self.db_path)
+                if self._is_memory:
+                    self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                    conn = self.conn
+                else:
+                    conn = sqlite3.connect(self.db_path)
                 conn.execute("""
                     CREATE TABLE IF NOT EXISTS interactions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +34,8 @@ class MemoryManager:
                     )
                 """)
                 conn.commit()
-                conn.close()
+                if not self._is_memory:
+                    conn.close()
                 logger.info("Banco de dados inicializado.")
         except sqlite3.Error as e:
             logger.error(f"Erro ao inicializar banco de dados: {e}")
@@ -38,13 +45,17 @@ class MemoryManager:
         """Armazena uma interação no banco de dados."""
         try:
             with self.lock:
-                conn = sqlite3.connect(self.db_path)
+                if self._is_memory:
+                    conn = self.conn
+                else:
+                    conn = sqlite3.connect(self.db_path)
                 conn.execute(
                     "INSERT INTO interactions (user_id, user_text, assistant_response) VALUES (?, ?, ?)",
                     (self.user_id, user_text, assistant_response)
                 )
                 conn.commit()
-                conn.close()
+                if not self._is_memory:
+                    conn.close()
                 logger.debug("Interação armazenada.")
         except sqlite3.Error as e:
             logger.error(f"Erro ao armazenar interação: {e}")
