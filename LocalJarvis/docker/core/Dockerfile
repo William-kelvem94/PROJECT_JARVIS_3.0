@@ -1,5 +1,5 @@
-# Dockerfile otimizado para suporte a GPU, TTS offline, plugins e dependências modernas
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+# Dockerfile otimizado para CPU/WSL, sem dependências de CUDA/nvidia
+FROM python:3.10-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -12,9 +12,7 @@ RUN apt-get update && \
 
 # Copia requirements
 COPY requirements.txt .
-# Instala torch com CUDA 11.8 do repositório oficial do PyTorch
 RUN pip3 install --upgrade pip && \
-    pip3 install torch==2.1.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118 && \
     pip3 install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código
