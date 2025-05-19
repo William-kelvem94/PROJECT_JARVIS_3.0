@@ -3,3 +3,7 @@ fastapi
 uvicorn
 gtts
 pyttsx3
+pyyaml
+psutil
+starlette
+# ...adicione outras dependências necessárias aqui...
