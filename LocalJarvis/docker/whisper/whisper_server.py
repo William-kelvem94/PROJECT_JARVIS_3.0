@@ -26,3 +26,7 @@ async def transcribe(file: UploadFile):
     except Exception as e:
         logger.error(f"Erro na transcrição: {e}")
         raise
+
+@app.get("/ready")
+def ready():
+    return {"status": "ok"}

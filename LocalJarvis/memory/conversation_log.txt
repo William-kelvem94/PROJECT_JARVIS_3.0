@@ -1,0 +1,56 @@
+Usuário: oi
+Assistente: o
+Assistente: ican?animate?
+Usuário: Ñ
+Assistente: abi?
+Assistente: abi?
+Assistente: ican?
+Assistente: ico
+Usuário: iguana?
+Assistente: iguana?
+Usuário: ican?
+Assist: ican?!
+Usuário: ien?
+Assist: ican??!
+Assist: ican??!
+Usuário: cen
+Assist: ican???.
+Usuário: iceman
+Assist: iceman
+Assist: iceman
+Assist: iceman
+Assist: iceman?!
+Assist: ican? nás ican?
+Assist: ican? nás?!
+Assist: ican? ná?
+Assist: ican? ná??!
+Assist: iceman? ná??!
+Assist: ican? ná??!
+Assist: ican? ná?
+Usuário: olá
+Assistente: Erro: Numpy is not available
+Usuário: olá
+Assistente: Erro: The current model class (DistilBertForMaskedLM) is not compatible with `.generate()`, as it doesn't have a language model head.
+Usuário: olá tudo bem?
+Assistente: Erro: The current model class (DistilBertForMaskedLM) is not compatible with `.generate()`, as it doesn't have a language model head.
+Usuário: hello
+Assistente: ican
+Usuário: oi
+Assistente: ican?
+Assist: ican?
+Assist: ican?
+Assist: ican?
+Assist: ican?
+Usuário: ican?
+Assist: ican? ican???
+Assist: ican?
+Ass
+Usuário: oi
+Assistente: ico
+Usuário: ican?
+Usuário: ien?
+Usuário: ican?
+Assistente: ican?
+Usuário: oi?
+Assistente: ican?
+Ass
