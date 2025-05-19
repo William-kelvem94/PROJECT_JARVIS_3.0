@@ -1,22 +1,17 @@
-import sqlite3
+import importlib.util
+import os
+
+# Import dinâmico do MemoryManager
+memory_manager_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../memory/memory_manager.py'))
+spec = importlib.util.spec_from_file_location('memory_manager', memory_manager_path)
+memory_manager = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(memory_manager)
+MemoryManager = memory_manager.MemoryManager
 
 def test_memory_manager():
-    conn = sqlite3.connect(":memory:")
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS interactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            user_text TEXT,
-            assistant_response TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.execute(
-        "INSERT INTO interactions (user_id, user_text, assistant_response) VALUES (?, ?, ?)",
-        ("default", "Teste", "Resposta")
-    )
-    conn.commit()
-    cursor = conn.execute("SELECT user_text, assistant_response FROM interactions")
-    rows = cursor.fetchall()
-    assert rows[0][0] == "Teste"
-    assert rows[0][1] == "Resposta"
+    memory = MemoryManager(":memory:")
+    memory._init_db()  # Garante que a tabela existe
+    memory.store_interaction("Teste", "Resposta")
+    context = memory.get_context()
+    assert "Teste" in context
+    assert "Resposta" in context

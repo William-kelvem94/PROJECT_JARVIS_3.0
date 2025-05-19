@@ -11,3 +11,7 @@ class SecurityPlugin:
     def monitor_network(self, network_data):
         """Monitora redes e dispositivos."""
         return "[Stub] Rede monitorada. Nenhuma atividade suspeita."
+
+    def process(self, text):
+        """Fallback seguro para integração com núcleo Jarvis."""
+        return None

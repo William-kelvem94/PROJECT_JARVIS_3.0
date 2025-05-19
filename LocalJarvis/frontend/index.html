@@ -7,32 +7,116 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>LocalJarvis</h1>
-        <button id="theme-toggle">Mudar Tema</button>
-        <div id="chat-box"></div>
+    <header class="app-bar">
+      <div class="app-bar__left">
+        <button class="icon-button" aria-label="Menu" onclick="toggleMenu()">
+          <svg width="24" height="24" fill="none"><rect y="4" width="24" height="2" rx="1" fill="#E0E0E0"/><rect y="11" width="24" height="2" rx="1" fill="#E0E0E0"/><rect y="18" width="24" height="2" rx="1" fill="#E0E0E0"/></svg>
+        </button>
+        <h1 class="text-subhead">Jarvis 3.0</h1>
+      </div>
+      <div class="app-bar__right">
+        <button class="avatar-button" onclick="openConfigModal()">
+          <img src="/assets/microphone.png" alt="User">
+        </button>
+      </div>
+    </header>
+    <div class="app-container">
+      <nav class="submenu">
+        <button id="tab-chat" class="active" onclick="showTab('chat')">Assistente</button>
+        <button id="tab-plugins" onclick="showTab('plugins')">Plugins</button>
+        <button id="tab-treino" onclick="showTab('treino')">Treinar IA</button>
+        <button id="tab-testes" onclick="showTab('testes')">Testes</button>
+      </nav>
+      <section id="tab-content-chat">
+        <div class="voice-card">
+          <div class="voice-visualizer">
+            <!-- SVG animado pode ser adicionado via JS -->
+            <svg class="wave" viewBox="0 0 100 20"><polyline points="0,10 10,5 20,15 30,10 40,5 50,15 60,10 70,5 80,15 90,10 100,5" stroke="#7E57C2" stroke-width="2" fill="none"/></svg>
+          </div>
+          <button class="fab-button" id="mic-button" onclick="toggleRecording()">
+            <svg width="28" height="28" fill="none"><circle cx="14" cy="14" r="14" fill="#7E57C2"/><rect x="10" y="7" width="8" height="14" rx="4" fill="#fff"/></svg>
+          </button>
+          <p class="text-caption">Toque e fale</p>
+        </div>
+        <div class="chat-container" id="chat-box"></div>
         <div class="input-group">
-            <input type="text" id="user-input" placeholder="Digite seu comando...">
-            <button onclick="sendMessage()">Enviar</button>
-            <button id="mic-button" onclick="toggleRecording()">
-                <img src="/assets/microphone.png" alt="Microfone" width="20">
-            </button>
+          <textarea id="user-input" placeholder="Digite seu comando..." rows="2"></textarea>
+          <button onclick="sendMessage()">Enviar</button>
         </div>
+      </section>
+      <section id="tab-content-plugins" style="display:none;">
+        <h2 class="text-subhead">Plugins</h2>
+        <div class="plugin-grid">
+          <div class="plugin-card">
+            <div class="plugin-icon" style="background: #4CAF50;">
+              <svg width="24" height="24"><circle cx="12" cy="12" r="10" fill="#fff"/></svg>
+            </div>
+            <h3 class="text-body">Automação</h3>
+            <p class="text-caption">5 tarefas ativas</p>
+          </div>
+          <div class="plugin-card">
+            <div class="plugin-icon" style="background: #4FC3F7;">
+              <svg width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="4" fill="#fff"/></svg>
+            </div>
+            <h3 class="text-body">Clima</h3>
+            <p class="text-caption">API ativa</p>
+          </div>
+          <!-- Adicione mais cards dinamicamente via JS se desejar -->
+        </div>
+      </section>
+      <section id="tab-content-treino" style="display:none;">
+        <h2 class="text-subhead">Treinar IA</h2>
         <div class="train-group">
-            <h2>Treinar IA</h2>
-            <input type="text" id="model-path" placeholder="Modelo base (ex: gpt2)">
-            <input type="text" id="output-dir" placeholder="Diretório de saída">
-            <input type="file" id="dataset-file" accept=".json,.txt,.csv">
-            <button onclick="trainModel()">Treinar</button>
-            <div id="train-status"></div>
+          <b>Digite no campo principal:</b><br>
+          <span class="text-caption">treinar modelo &lt;nome&gt; com dataset &lt;dados do dataset em texto&gt;</span>
+          <button onclick="trainModel()">Treinar</button>
+          <div id="train-status"></div>
         </div>
-        <div class="train-group">
-            <h2>Testes Automatizados</h2>
-            <button onclick="runTests()">Testar Sistema</button>
-            <textarea id="test-output" rows="10" style="width:100%;margin-top:10px;"></textarea>
+      </section>
+      <section id="tab-content-testes" style="display:none;">
+        <h2 class="text-subhead">Testes Automatizados</h2>
+        <button onclick="runTests()">Testar Sistema</button>
+        <textarea id="test-output" rows="10" style="width:100%;margin-top:10px;"></textarea>
+      </section>
+    </div>
+    <div id="config-modal" class="oneui-modal" style="display:none;">
+      <div class="modal-header">
+        <h2 class="text-headline">Configurações</h2>
+        <button class="icon-button close-button" onclick="closeConfigModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="text-body">Tema escuro</h3>
+            <p class="text-caption">Ativar modo noturno</p>
+          </div>
+          <label class="oneui-switch">
+            <input type="checkbox" id="darkmode-toggle" checked onchange="toggleDarkMode()">
+            <span class="slider"></span>
+          </label>
         </div>
+      </div>
     </div>
     <script src="/app.js"></script>
     <script src="/chat.js"></script>
+    <script>
+      function showTab(tab) {
+        ["chat","plugins","treino","testes"].forEach(t => {
+          document.getElementById(`tab-content-${t}`).style.display = (t===tab)?'block':'none';
+          document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+        });
+      }
+      function openConfigModal() {
+        document.getElementById('config-modal').style.display = 'block';
+      }
+      function closeConfigModal() {
+        document.getElementById('config-modal').style.display = 'none';
+      }
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark');
+      }
+      // Menu lateral futuro
+      function toggleMenu() { alert('Menu lateral em breve!'); }
+    </script>
 </body>
 </html>

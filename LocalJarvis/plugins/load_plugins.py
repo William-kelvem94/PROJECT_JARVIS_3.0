@@ -5,7 +5,7 @@ import os
 logger = logging.getLogger(__name__)
 
 def load_plugins(config):
-    """Carrega plugins configurados, incluindo advanced_plugins. Loga dependências se houver requirements.txt."""
+    """Carrega plugins configurados, incluindo advanced_plugins. Instancia corretamente a classe principal."""
     plugins = {}
     plugin_dirs = ["plugins", "advanced_plugins"]
     for plugin_dir in plugin_dirs:
@@ -19,7 +19,20 @@ def load_plugins(config):
                 if settings.get('enabled', True):
                     try:
                         module = importlib.import_module(f"{plugin_dir}.{name}")
-                        plugins[name] = getattr(module, 'Plugin', None) or getattr(module, name.capitalize() + 'Plugin', None) or module
+                        # Tenta encontrar a classe principal do plugin
+                        plugin_class = None
+                        if hasattr(module, 'Plugin'):
+                            plugin_class = getattr(module, 'Plugin')
+                        else:
+                            # Procura por classe com nome <NomePlugin> ou <NamePlugin>
+                            for attr in dir(module):
+                                if attr.lower() == f"{name.lower()}plugin":
+                                    plugin_class = getattr(module, attr)
+                                    break
+                        if plugin_class:
+                            plugins[name] = plugin_class(settings)
+                        else:
+                            logger.warning(f"Plugin {name} não possui classe Plugin ou <Nome>Plugin.")
                         # Checa requirements.txt do plugin
                         req_path = os.path.join(dir_path, name + "_requirements.txt")
                         if os.path.exists(req_path):

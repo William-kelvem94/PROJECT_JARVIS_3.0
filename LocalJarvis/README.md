@@ -2,23 +2,35 @@
 
 Um assistente virtual local, inspirado no Jarvis do Homem de Ferro, que processa comandos de voz ou texto, executa ações no sistema e mantém histórico conversacional. Tudo roda em Docker, sem APIs pagas.
 
-## Pré-requisitos
+## 🚀 Quickstart
 
-- Docker Desktop (Windows/macOS) ou Docker Engine (Linux).
-- 8 GB RAM (mínimo).
+1. Pré-requisitos:
+   - Docker 20.10+
+   - (Opcional) Nvidia Container Toolkit para GPU
 
-## Instalação
-
-1. Clone o repositório:
-   ```bash
+2. Inicialização:
+   ```powershell
    git clone <URL_DO_REPOSITORIO>
    cd LocalJarvis
+   cp .env.example .env  # Configure as variáveis
+   docker-compose up --build
    ```
 
-2. Inicie os containers:
-   ```bash
-   docker-compose up --build -d
+3. Testes:
+   ```powershell
+   # Testes unitários
+   docker-compose exec core pytest tests/
+
+   # Verificação de serviços
+   ./scripts/healthcheck.sh
    ```
+
+## 🔧 Configuração
+| Variável            | Default               | Descrição                |
+|---------------------|-----------------------|--------------------------|
+| TTS_SERVICE_URL     | http://tts:5002       | URL do serviço TTS       |
+| STT_SERVICE_URL     | http://whisper:5001   | URL do serviço STT       |
+| LOG_LEVEL           | INFO                  | DEBUG\|INFO\|WARNING\|ERROR |
 
 ## Uso
 
@@ -26,10 +38,6 @@ Um assistente virtual local, inspirado no Jarvis do Homem de Ferro, que processa
 - **API**:
   - Texto: `curl -X POST -H "Content-Type: application/json" -d '{"text":"abrir notepad"}' http://localhost:5000/text`
   - Áudio: Envie um arquivo WAV para `http://localhost:5000/audio`.
-
-## Configuração
-
-Edite `config/system_config.yaml` para ajustar modelos, URLs e comandos permitidos.
 
 ## Principais Funcionalidades
 
@@ -68,9 +76,26 @@ Invoke-RestMethod -Uri http://localhost:5000/audio -Method Post -InFile .\audio.
 ## Testes
 
 Execute os testes com:
-```bash
-docker exec -it localjarvis_core_1 pytest tests/
+```powershell
+docker-compose exec core pytest tests/
 ```
+
+## Healthcheck dos Serviços
+
+Execute para validar endpoints principais:
+```powershell
+bash ./scripts/healthcheck.sh
+```
+
+## Logging
+
+Os logs ficam disponíveis em `/app/logs/jarvis.log` dentro do container core.
+
+## Boas Práticas
+
+- Versione imagens: `docker build -t jarvis-core:$(git rev-parse --short HEAD) -f docker/core/Dockerfile .`
+- Use CI/CD para build/teste automático.
+- Monitore logs em tempo real: `docker-compose logs -f --tail=100 --no-color | tee combined.log`
 
 ## Contribuição
 

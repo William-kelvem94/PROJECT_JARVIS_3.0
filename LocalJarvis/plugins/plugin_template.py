@@ -5,9 +5,9 @@ Copie este arquivo e personalize.
 import logging
 logger = logging.getLogger(__name__)
 
-class Plugin:
-    def __init__(self, config):
-        self.config = config
+class BasePlugin:
+    def __init__(self, config=None):
+        self.config = config or {}
 
     def can_handle(self, text):
         """Retorna True se o plugin pode lidar com o texto."""
@@ -16,7 +16,7 @@ class Plugin:
     def handle(self, text):
         """Processa o texto e retorna uma resposta."""
         logger.info(f"Plugin {self.__class__.__name__} chamado com: {text}")
-        return "[Stub] Resposta do plugin."
+        return None
 
     def process(self, text):
         """Interface alternativa para integração com o núcleo."""
@@ -27,3 +27,6 @@ class Plugin:
     def on_event(self, event):
         """Recebe eventos do núcleo (opcional)."""
         logger.info(f"Evento recebido: {event}")
+
+# Para retrocompatibilidade
+Plugin = BasePlugin

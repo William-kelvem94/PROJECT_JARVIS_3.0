@@ -72,18 +72,17 @@ async function sendAudio() {
 }
 
 async function trainModel() {
-    // Nova lógica: usa o campo principal de texto para enviar comando de treinamento
+    // Agora o usuário deve digitar: treinar modelo <nome> com dataset <dados> no campo principal
     const input = document.getElementById('user-input').value;
-    if (!input) {
-        const statusDiv = document.getElementById('train-status');
-        statusDiv.innerText = 'Digite o comando de treinamento no campo principal.';
+    const statusDiv = document.getElementById('train-status');
+    if (!input || !input.toLowerCase().includes('treinar')) {
+        statusDiv.innerText = 'Digite o comando de treinamento no campo principal, exemplo: treinar modelo gpt2 com dataset <dados>';
         return;
     }
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML += `<p><strong>Você:</strong> ${input}</p>`;
     chatBox.scrollTop = chatBox.scrollHeight;
-    const statusDiv = document.getElementById('train-status');
-    statusDiv.innerText = 'Enviando comando de treinamento...';
+    statusDiv.innerText = 'Treinamento iniciado. Aguarde resposta do Jarvis...';
     try {
         const response = await fetch('/text', {
             method: 'POST',
@@ -93,7 +92,7 @@ async function trainModel() {
         const data = await response.json();
         if (data.response) {
             chatBox.innerHTML += `<p><strong>Jarvis:</strong> ${data.response}</p>`;
-            statusDiv.innerText = 'Treinamento solicitado. Veja resposta acima.';
+            statusDiv.innerText = 'Treinamento finalizado. Veja resposta acima.';
         } else if (data.error) {
             chatBox.innerHTML += `<p><strong>Erro:</strong> ${data.error}</p>`;
             statusDiv.innerText = data.error;
@@ -120,6 +119,36 @@ async function runTests() {
         outputBox.value = 'Erro ao rodar testes: ' + error.message;
     }
 }
+
+// Tabs e navegação One UI
+function showTab(tab) {
+  ["chat","plugins","treino","testes"].forEach(t => {
+    document.getElementById(`tab-content-${t}`).style.display = (t===tab)?'block':'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+  });
+}
+function openConfigModal() {
+  document.getElementById('config-modal').style.display = 'block';
+}
+function closeConfigModal() {
+  document.getElementById('config-modal').style.display = 'none';
+}
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+  document.getElementById('darkmode-toggle').checked = document.body.classList.contains('dark');
+}
+
+// Inicialização: mantém dark mode se já estava ativo
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('darkmode') === 'true') {
+    document.body.classList.add('dark');
+    document.getElementById('darkmode-toggle').checked = true;
+  }
+  document.getElementById('darkmode-toggle').addEventListener('change', (e) => {
+    document.body.classList.toggle('dark', e.target.checked);
+    localStorage.setItem('darkmode', e.target.checked);
+  });
+});
 
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.body.classList.toggle('dark');

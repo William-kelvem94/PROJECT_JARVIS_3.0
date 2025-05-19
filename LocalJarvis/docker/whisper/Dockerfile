@@ -4,7 +4,7 @@ FROM python:3.10-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y ffmpeg python3-pip && \
+    apt-get install -y curl ffmpeg python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install --upgrade pip && \
     # Dependências críticas para FastAPI e compatibilidade numpy

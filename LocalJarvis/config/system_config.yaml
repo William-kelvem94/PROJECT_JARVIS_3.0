@@ -7,7 +7,7 @@ tts:
   voice: "default"
   offline: false
 llm:
-  model_path: "gpt2"
+  model_path: "pierreguillou/gpt2-small-portuguese"
   max_tokens: 512
 memory:
   db_path: "/app/memory/memory.db"

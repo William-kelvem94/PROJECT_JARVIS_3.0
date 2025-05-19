@@ -1,6 +1,6 @@
 # Testes para plugins do LocalJarvis
 import pytest
-from plugins.media_control import Plugin as MediaControlPlugin
+from plugins.media_control import MediaControlPlugin
 from plugins.weather_plugin import Plugin as WeatherPlugin
 
 def test_media_control_can_handle():

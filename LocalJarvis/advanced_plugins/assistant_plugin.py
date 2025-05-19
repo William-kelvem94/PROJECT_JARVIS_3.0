@@ -11,3 +11,7 @@ class AssistantPlugin:
     def personal_assistant(self, request):
         """Auxilia em tarefas pessoais (agenda, lembretes, pesquisas)."""
         return f"[Stub] Assistente pessoal: {request}"
+
+    def process(self, text):
+        """Fallback seguro para integração com núcleo Jarvis."""
+        return None

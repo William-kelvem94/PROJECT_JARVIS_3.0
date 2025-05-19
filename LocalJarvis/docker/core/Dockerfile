@@ -13,7 +13,7 @@ RUN apt-get update && \
 # Copia requirements
 COPY requirements.txt .
 RUN pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir "numpy<2"
+    pip3 install --no-cache-dir "numpy<2" torch==2.0.1
 
 # Instala torch via wheel oficial (mais robusto para Docker)
 RUN echo "Instalando torch via wheel oficial..." && \
@@ -21,9 +21,15 @@ RUN echo "Instalando torch via wheel oficial..." && \
     pip3 install --no-cache-dir torch-2.0.1-cp310-cp310-linux_x86_64.whl || \
     (echo "Falha no wheel, tentando via PyPI..." && pip3 install --no-cache-dir torch==2.0.1 --index-url https://pypi.org/simple)
 
+# Instala datasets manualmente para garantir que o pacote está presente
+RUN pip3 install --no-cache-dir datasets==3.5.0 && pip3 list
+
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código
 COPY . .
+
+# Força o download do modelo gpt2 para evitar fallback na primeira execução
+RUN python3 download_gpt2.py
 
 CMD ["python3", "jarvis_entrypoint.py"]

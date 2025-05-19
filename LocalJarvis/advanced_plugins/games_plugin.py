@@ -15,3 +15,7 @@ class GamesPlugin:
     def personalize_game(self, user_profile):
         """Personaliza experiência de jogo com IA."""
         return f"[Stub] Jogo personalizado para: {user_profile}"
+
+    def process(self, text):
+        """Fallback seguro para integração com núcleo Jarvis."""
+        return None

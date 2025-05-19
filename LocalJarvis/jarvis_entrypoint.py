@@ -3,6 +3,7 @@ import logging
 import sys
 import json
 import queue
+import os
 from flask import Flask, request, jsonify
 from audio_processing.speech_to_text import SpeechToText
 from audio_processing.text_to_speech import TextToSpeech
@@ -157,6 +158,13 @@ class Jarvis:
                     except Exception as e:
                         logger.warning(f"Plugin {plugin_name} falhou ao processar evento: {e}")
 
+            # Aprendizado contínuo: armazena interação para possível re-treinamento
+            try:
+                with open("./memory/conversation_log.txt", "a", encoding="utf-8") as f:
+                    f.write(f"Usuário: {text}\nAssistente: {response}\n")
+            except Exception as e:
+                logger.warning(f"Falha ao registrar conversa para aprendizado contínuo: {e}")
+
             # Retorna resposta em texto ou áudio
             if input_type == 'audio':
                 audio_response = self.tts.synthesize(response)
@@ -300,6 +308,21 @@ def run_tests():
         return {'output': output}
     except Exception as e:
         return {'output': f'Erro ao rodar testes: {e}'}
+
+@app.route('/train_from_log', methods=['POST'])
+def train_from_log():
+    """Endpoint para treinar incrementalmente a partir do log de conversas."""
+    try:
+        from language_model import training
+        log_path = "./memory/conversation_log.txt"
+        if not os.path.exists(log_path):
+            return jsonify({'error': 'Nenhum log de conversa encontrado.'}), 400
+        output_dir = './fine_tuned_model'
+        training.fine_tune_model('gpt2', log_path, output_dir)
+        return jsonify({'message': f'Modelo incremental treinado e salvo em {output_dir}'}), 200
+    except Exception as e:
+        logger.error(f"Erro no treinamento incremental: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     logger.info("Iniciando servidor web na porta 5000...")

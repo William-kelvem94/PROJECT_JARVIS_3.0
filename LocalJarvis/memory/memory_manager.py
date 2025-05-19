@@ -65,7 +65,10 @@ class MemoryManager:
         """Recupera o contexto das últimas 5 interações do usuário."""
         try:
             with self.lock:
-                conn = sqlite3.connect(self.db_path)
+                if self._is_memory:
+                    conn = self.conn
+                else:
+                    conn = sqlite3.connect(self.db_path)
                 cursor = conn.execute(
                     "SELECT user_text, assistant_response FROM interactions WHERE user_id = ? ORDER BY id DESC LIMIT 5",
                     (self.user_id,)
@@ -73,7 +76,8 @@ class MemoryManager:
                 context = "\n".join(
                     f"Usuário: {row[0]}\nAssistente: {row[1]}" for row in cursor
                 )
-                conn.close()
+                if not self._is_memory:
+                    conn.close()
                 return context or "Nenhum contexto disponível."
         except sqlite3.Error as e:
             logger.error(f"Erro ao recuperar contexto: {e}")

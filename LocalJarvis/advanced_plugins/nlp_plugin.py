@@ -27,3 +27,7 @@ class NLPPlugin:
     def on_event(self, event):
         """Integração com sistema de eventos do núcleo."""
         print(f"[NLPPlugin] Evento recebido: {event}")
+
+    def process(self, text):
+        """Fallback seguro para integração com núcleo Jarvis."""
+        return None

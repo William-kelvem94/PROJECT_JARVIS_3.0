@@ -1,4 +1,5 @@
-# docker-compose.yml compatível com Compose v2+
+version: '3.8'
+
 services:
   core:
     build:
@@ -10,11 +11,16 @@ services:
       - ./memory:/app/memory
       - ./config:/app/config
       - ./frontend:/app/frontend
+      - jarvis_logs:/app/logs
     environment:
       - PYTHONUNBUFFERED=1
+      - TTS_SERVICE_URL=http://tts:5002
+      - STT_SERVICE_URL=http://whisper:5001
     depends_on:
-      - whisper
-      - tts
+      tts:
+        condition: service_healthy
+      whisper:
+        condition: service_healthy
   whisper:
     build:
       context: .
@@ -23,6 +29,11 @@ services:
       - "5001:5001"
     environment:
       - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   tts:
     build:
       context: ./docker/tts
@@ -30,3 +41,14 @@ services:
       - "5002:5002"
     environment:
       - PYTHONUNBUFFERED=1
+    volumes:
+      - tts_cache:/app/audio_cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  jarvis_logs:
+  tts_cache:
