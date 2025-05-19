@@ -1,9 +1,9 @@
 stt:
-  docker_url: "http://whisper:5001"
+  docker_url: "http://localhost:5000/stt"
   timeout: 10
   language: "pt"
 tts:
-  docker_url: "http://tts:5002"
+  docker_url: "http://localhost:5000/tts"
   voice: "default"
   offline: false
 llm:

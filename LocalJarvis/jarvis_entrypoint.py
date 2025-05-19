@@ -324,6 +324,42 @@ def train_from_log():
         logger.error(f"Erro no treinamento incremental: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/stt', methods=['POST'])
+def stt_endpoint():
+    """Endpoint unificado para transcrição de áudio (STT) na mesma porta."""
+    try:
+        audio = request.data
+        jarvis = initialize_jarvis()
+        text = jarvis.stt.transcribe(audio)
+        return jsonify({'text': text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/tts', methods=['POST'])
+def tts_endpoint():
+    """Endpoint unificado para síntese de texto em áudio (TTS) na mesma porta."""
+    try:
+        data = request.json.get('text', '')
+        jarvis = initialize_jarvis()
+        audio = jarvis.tts.synthesize(data)
+        return audio, 200, {'Content-Type': 'audio/wav'}
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/api/plugins', methods=['GET'])
+def get_active_plugins():
+    """Retorna plugins ativos para o frontend (dinâmico)."""
+    jarvis = initialize_jarvis()
+    plugins = []
+    for name, plugin in jarvis.plugins.items():
+        plugins.append({
+            'name': name,
+            'icon': getattr(plugin, 'icon_base64', ''),  # Opcional: plugin pode definir
+            'status': getattr(plugin, 'get_status', lambda: 'ativo')(),
+            'actions': getattr(plugin, 'available_actions', lambda: [])()
+        })
+    return jsonify(plugins)
+
 if __name__ == "__main__":
     logger.info("Iniciando servidor web na porta 5000...")
     app.run(host='0.0.0.0', port=5000, debug=False)

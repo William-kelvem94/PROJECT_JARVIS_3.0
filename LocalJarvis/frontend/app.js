@@ -153,3 +153,107 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.body.classList.toggle('dark');
 });
+
+// Toast notification system
+function showToast(message, type = 'info', duration = 3000) {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('visible'), 10);
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// Carregamento dinâmico de plugins
+async function loadPlugins() {
+  const response = await fetch('/api/plugins');
+  const plugins = await response.json();
+  const grid = document.querySelector('.plugin-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  plugins.forEach(plugin => {
+    const card = `
+      <div class="plugin-card" data-plugin="${plugin.name}">
+        <div class="plugin-icon">
+          ${plugin.icon ? `<img src='data:image/svg+xml;base64,${plugin.icon}' alt='${plugin.name}'>` : '<svg width="24" height="24"><circle cx="12" cy="12" r="10" fill="#7E57C2"/></svg>'}
+        </div>
+        <h3 class="text-body">${plugin.name}</h3>
+        <div class="plugin-actions">
+          ${(plugin.actions||[]).map(a => `<button class="pill-button">${a}</button>`).join('')}
+        </div>
+        <span class="plugin-status ${plugin.status}">${plugin.status}</span>
+      </div>
+    `;
+    grid.insertAdjacentHTML('beforeend', card);
+  });
+}
+
+// Chama loadPlugins ao abrir a aba de plugins
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tab-plugins')?.addEventListener('click', loadPlugins);
+});
+
+// Audio visualizer (opcional, não quebra SVG atual)
+class AudioVisualizer {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.analyser = null;
+    this.dataArray = null;
+    this.animationId = null;
+  }
+  start(stream) {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    this.analyser = audioCtx.createAnalyser();
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(this.analyser);
+    this.analyser.fftSize = 256;
+    const bufferLength = this.analyser.frequencyBinCount;
+    this.dataArray = new Uint8Array(bufferLength);
+    this.draw();
+  }
+  draw() {
+    if (!this.analyser) return;
+    this.animationId = requestAnimationFrame(() => this.draw());
+    this.analyser.getByteFrequencyData(this.dataArray);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = '#7E57C2';
+    const barWidth = (this.canvas.width / this.dataArray.length) * 2.5;
+    let x = 0;
+    for (let i = 0; i < this.dataArray.length; i++) {
+      const barHeight = this.dataArray[i] / 2;
+      this.ctx.fillRect(x, this.canvas.height - barHeight, barWidth, barHeight);
+      x += barWidth + 1;
+    }
+  }
+}
+
+// ChatHistory (IndexedDB, não interfere no chat atual)
+class ChatHistory {
+  constructor() {
+    this.db = null;
+    this.initDB();
+  }
+  initDB() {
+    const request = indexedDB.open('JarvisChatHistory', 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('chats')) {
+        db.createObjectStore('chats', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    request.onsuccess = (e) => {
+      this.db = e.target.result;
+      // this.loadHistory(); // opcional
+    };
+  }
+  addMessage(message) {
+    if (!this.db) return;
+    const tx = this.db.transaction('chats', 'readwrite');
+    tx.objectStore('chats').add({ timestamp: Date.now(), ...message });
+  }
+}
