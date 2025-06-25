@@ -64,116 +64,78 @@ class Jarvis:
 
     def process_input(self, input_data, input_type='text'):
         """Processa entrada de texto ou áudio e retorna a resposta."""
-        # Intercepta comando de treinamento antes de qualquer processamento
-        if input_type == 'text' and str(input_data).strip().lower().startswith(('treinar', 'train')):
-            import re
-            modelo = 'gpt2'
-            output_dir = './fine_tuned_model'
-            dataset_content = None
-            m = re.search(r'modelo\s+(\w+)', input_data, re.IGNORECASE)
-            if m:
-                modelo = m.group(1)
-            d = re.search(r'dataset\s+(.+)', input_data, re.IGNORECASE)
-            if d:
-                dataset_content = d.group(1)
-            if not dataset_content:
-                return "Comando de treinamento detectado, mas nenhum dataset fornecido. Use: treinar modelo <nome> com dataset <dados>"
-            try:
-                import tempfile
-                with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.txt') as tmp:
-                    tmp.write(dataset_content)
-                    dataset_path = tmp.name
-                training.fine_tune_model(modelo, dataset_path, output_dir)
-                return f"Treinamento concluído! Modelo salvo em {output_dir}"
-            except Exception as e:
-                logger.error(f"Erro no treinamento: {e}")
-                return f"Erro no treinamento: {e}"
         try:
-            # Converte áudio para texto, se necessário
-            if input_type == 'audio':
-                logger.info("Processando entrada de áudio.")
-                text = self.stt.transcribe(input_data)
-            else:
-                text = input_data
-                logger.info(f"Processando entrada de texto: {text}")
-
-            # Recupera contexto da memória
-            context = self.memory.get_context()
-            logger.debug(f"Contexto recuperado: {context[:100]}...")
-
-            # Gera resposta e detecta ação com o modelo de linguagem
-            response, action = self.llm.infer(text, context)
-            logger.info(f"Resposta gerada: {response[:50]}..., Ação: {action}")
-
-            # Executa ação, se houver
-            if action:
-                execution_result = self.executor.execute(action)
-                response += f"\nResultado: {execution_result}"
-                logger.info(f"Ação executada: {execution_result}")
-
-            # Armazena interação na memória
-            self.memory.store_interaction(text, response)
-            logger.debug("Interação armazenada na memória.")
-
-            # Após gerar resposta, verifica se algum plugin pode ser chamado
-            for plugin_name, plugin in self.plugins.items():
-                # Chama process se existir e aceitar argumento
-                if hasattr(plugin, 'process'):
-                    try:
-                        result = plugin.process(text)
-                        if result:
-                            response += f"\n[{plugin_name}]: {result}"
-                            logger.info(f"Plugin {plugin_name} executado.")
-                    except TypeError as e:
-                        # Se process não aceita argumento, tenta handle
-                        if hasattr(plugin, 'handle'):
-                            try:
-                                result = plugin.handle(text)
-                                if result:
-                                    response += f"\n[{plugin_name}]: {result}"
-                                    logger.info(f"Plugin {plugin_name} executado via handle.")
-                            except Exception as e2:
-                                logger.warning(f"Plugin {plugin_name} falhou ao processar via handle: {e2}")
-                        else:
-                            logger.warning(f"Plugin {plugin_name} não tem método process(text) nem handle(text): {e}")
-                    except Exception as e:
-                        logger.warning(f"Plugin {plugin_name} falhou ao processar: {e}")
-                elif hasattr(plugin, 'handle'):
-                    try:
-                        result = plugin.handle(text)
-                        if result:
-                            response += f"\n[{plugin_name}]: {result}"
-                            logger.info(f"Plugin {plugin_name} executado via handle.")
-                    except Exception as e:
-                        logger.warning(f"Plugin {plugin_name} falhou ao processar via handle: {e}")
-                # Sistema de eventos: envia evento para plugins que implementam on_event
-                if hasattr(plugin, 'on_event'):
-                    try:
-                        plugin.on_event({
-                            'input': text,
-                            'context': context,
-                            'personality': self.personality,
-                            'mode': self.mode
-                        })
-                    except Exception as e:
-                        logger.warning(f"Plugin {plugin_name} falhou ao processar evento: {e}")
-
-            # Aprendizado contínuo: armazena interação para possível re-treinamento
-            try:
-                with open("./memory/conversation_log.txt", "a", encoding="utf-8") as f:
-                    f.write(f"Usuário: {text}\nAssistente: {response}\n")
-            except Exception as e:
-                logger.warning(f"Falha ao registrar conversa para aprendizado contínuo: {e}")
-
-            # Retorna resposta em texto ou áudio
-            if input_type == 'audio':
-                audio_response = self.tts.synthesize(response)
-                logger.info("Resposta de áudio gerada.")
-                return audio_response
-            return response
+            # Inicializa processadores se não existirem
+            if not hasattr(self, '_processors_initialized'):
+                self._initialize_processors()
+            
+            # Processa comando de treinamento primeiro
+            if input_type == 'text' and self.training_processor.is_training_command(str(input_data)):
+                return self.training_processor.process_training_command(str(input_data))
+            
+            # Converte áudio para texto se necessário
+            text = self._convert_input_to_text(input_data, input_type)
+            logger.info(f"Processando entrada: {text}")
+            
+            # Gera resposta principal
+            response = self._generate_main_response(text)
+            
+            # Processa plugins
+            plugin_results = self.plugin_processor.process_plugins(
+                text, self.memory.get_context(), self.personality, self.mode
+            )
+            if plugin_results:
+                response += "\n" + plugin_results
+            
+            # Registra conversa para aprendizado
+            self.conversation_logger.log_conversation(text, response)
+            
+            # Retorna resposta no formato apropriado
+            return self._format_response(response, input_type)
+        
         except Exception as e:
             logger.error(f"Erro ao processar entrada: {e}", exc_info=True)
             raise
+    
+    def _initialize_processors(self):
+        """Inicializa os processadores especializados."""
+        from core.input_processors import (
+            TrainingProcessor, AudioProcessor, PluginProcessor,
+            ConversationLogger, ResponseProcessor
+        )
+        
+        self.training_processor = TrainingProcessor(training)
+        self.audio_processor = AudioProcessor(self.stt, self.tts)
+        self.plugin_processor = PluginProcessor(self.plugins)
+        self.conversation_logger = ConversationLogger()
+        self.response_processor = ResponseProcessor(self.llm, self.executor, self.memory)
+        self._processors_initialized = True
+    
+    def _convert_input_to_text(self, input_data, input_type):
+        """Converte entrada para texto."""
+        if input_type == 'audio':
+            return self.audio_processor.transcribe_audio(input_data)
+        return str(input_data)
+    
+    def _generate_main_response(self, text):
+        """Gera resposta principal usando LLM."""
+        response, action = self.response_processor.generate_response(text)
+        
+        # Executa ação se detectada
+        action_result = self.response_processor.execute_action(action)
+        if action_result:
+            response += action_result
+        
+        # Armazena interação
+        self.response_processor.store_interaction(text, response)
+        
+        return response
+    
+    def _format_response(self, response, input_type):
+        """Formata resposta no tipo apropriado."""
+        if input_type == 'audio':
+            return self.audio_processor.synthesize_response(response)
+        return response
 
     def set_personality(self, personality):
         """Altera a personalidade do assistente."""

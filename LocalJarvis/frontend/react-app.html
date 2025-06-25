@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 3.0 - AI System</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #00d4ff;
+            --secondary-blue: #0099cc;
+            --accent-cyan: #00ffff;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --panel-bg: rgba(13, 13, 13, 0.95);
+            --border-glow: rgba(0, 212, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4444;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, #000000 0%, #001122 25%, #000033 50%, #001122 75%, #000000 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+        }
+
+        .jarvis-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--primary-blue), var(--accent-cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 212, 255, 0.6); }
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--success);
+            border-radius: 25px;
+            animation: statusGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes statusGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .panel:hover::before {
+            left: 100%;
+        }
+
+        .panel:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .central-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            text-align: center;
+            background: linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 255, 0.1));
+        }
+
+        .chat-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-status {
+            color: var(--success);
+            font-size: 0.9rem;
+            animation: typewriter 2s steps(20) infinite;
+        }
+
+        @keyframes typewriter {
+            0%, 50% { content: 'AGUARDANDO COMANDO'; }
+            51%, 100% { content: 'SISTEMA PRONTO'; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            opacity: 0;
+            animation: messageSlide 0.5s ease forwards;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message.jarvis {
+            background: linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 255, 0.05));
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .message.user {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--accent-cyan);
+            margin-left: 2rem;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .control-button {
+            background: linear-gradient(45deg, var(--primary-blue), var(--secondary-blue));
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .control-button:hover::before {
+            left: 100%;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: var(--glass-bg);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-cyan));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            animation: progressGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes progressGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); }
+        }
+
+        .plugin-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .plugin-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .plugin-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .plugin-status {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .floating-orb {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .neural-network {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .sidebar {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .panel {
+                min-width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .main-content {
+                padding: 0.5rem;
+                gap: 0.5rem;
+            }
+            
+            .sidebar {
+                flex-direction: column;
+            }
+            
+            .panel {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="jarvis-app"></div>
+    <div class="matrix-bg"></div>
+    <div class="floating-orb" style="top: 10%; left: 10%;"></div>
+    <div class="floating-orb" style="top: 60%; right: 10%; animation-delay: -2s;"></div>
+    <div class="floating-orb" style="bottom: 20%; left: 20%; animation-delay: -4s;"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const JarvisApp = () => {
+            const [messages, setMessages] = useState([
+                {
+                    id: 1,
+                    type: 'jarvis',
+                    content: 'JARVIS SISTEMA INICIADO',
+                    timestamp: new Date()
+                },
+                {
+                    id: 2,
+                    type: 'jarvis',
+                    content: 'Olá! Eu sou o JARVIS 3.0, seu assistente de inteligência artificial avançado. Como posso ajudá-lo hoje?',
+                    timestamp: new Date()
+                }
+            ]);
+            const [inputValue, setInputValue] = useState('');
+            const [systemMetrics, setSystemMetrics] = useState({
+                cpu: 45,
+                ram: 67,
+                gpu: 23,
+                network: 89
+            });
+            const [activePlugins, setActivePlugins] = useState([
+                'Assistant',
+                'Vision',
+                'Security',
+                'Analytics',
+                'Neural Network'
+            ]);
+            const [currentTime, setCurrentTime] = useState(new Date());
+            const messagesEndRef = useRef(null);
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setCurrentTime(new Date());
+                    // Simular variações nos métricas do sistema
+                    setSystemMetrics(prev => ({
+                        cpu: Math.max(20, Math.min(80, prev.cpu + (Math.random() - 0.5) * 10)),
+                        ram: Math.max(30, Math.min(90, prev.ram + (Math.random() - 0.5) * 8)),
+                        gpu: Math.max(10, Math.min(70, prev.gpu + (Math.random() - 0.5) * 15)),
+                        network: Math.max(60, Math.min(100, prev.network + (Math.random() - 0.5) * 5))
+                    }));
+                }, 2000);
+
+                return () => clearInterval(timer);
+            }, []);
+
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            const sendMessage = async () => {
+                if (!inputValue.trim()) return;
+
+                const userMessage = {
+                    id: Date.now(),
+                    type: 'user',
+                    content: inputValue,
+                    timestamp: new Date()
+                };
+
+                setMessages(prev => [...prev, userMessage]);
+                setInputValue('');
+
+                // Simular resposta do JARVIS
+                setTimeout(() => {
+                    const responses = [
+                        'Comando recebido e processado com sucesso.',
+                        'Analisando sua solicitação... Processamento completo.',
+                        'Sistema neural ativado. Executando protocolo de resposta.',
+                        'Dados processados através da rede neural avançada.',
+                        'Inteligência artificial ativada. Como posso ajudar mais?'
+                    ];
+                    
+                    const jarvisResponse = {
+                        id: Date.now() + 1,
+                        type: 'jarvis',
+                        content: responses[Math.floor(Math.random() * responses.length)],
+                        timestamp: new Date()
+                    };
+
+                    setMessages(prev => [...prev, jarvisResponse]);
+                }, 1000);
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            };
+
+            return (
+                <div className="jarvis-container">
+                    <header className="header">
+                        <div className="header-content">
+                            <div className="logo">
+                                <div className="logo-icon">
+                                    <i className="fas fa-brain" style={{color: 'white', fontSize: '1.5rem'}}></i>
+                                </div>
+                                <div className="logo-text">
+                                    <div className="logo-title">JARVIS 3.0</div>
+                                    <div className="logo-subtitle">Artificial Intelligence System</div>
+                                </div>
+                            </div>
+                            <div className="system-status">
+                                <div className="status-indicator">
+                                    <div className="status-dot"></div>
+                                    <span>SISTEMA ONLINE</span>
+                                </div>
+                                <div style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>
+                                    {currentTime.toLocaleTimeString()}
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="main-content">
+                        <aside className="sidebar">
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-tachometer-alt"></i>
+                                    <span>Métricas do Sistema</span>
+                                </div>
+                                <div className="metrics-grid">
+                                    <div className="metric-card">
+                                        <div className="metric-value">{Math.round(systemMetrics.cpu)}%</div>
+                                        <div className="metric-label">CPU</div>
+                                        <div className="progress-bar">
+                                            <div className="progress-fill" style={{width: `${systemMetrics.cpu}%`}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-value">{Math.round(systemMetrics.ram)}%</div>
+                                        <div className="metric-label">RAM</div>
+                                        <div className="progress-bar">
+                                            <div className="progress-fill" style={{width: `${systemMetrics.ram}%`}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-value">{Math.round(systemMetrics.gpu)}%</div>
+                                        <div className="metric-label">GPU</div>
+                                        <div className="progress-bar">
+                                            <div className="progress-fill" style={{width: `${systemMetrics.gpu}%`}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-value">{Math.round(systemMetrics.network)}%</div>
+                                        <div className="metric-label">REDE</div>
+                                        <div className="progress-bar">
+                                            <div className="progress-fill" style={{width: `${systemMetrics.network}%`}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-eye"></i>
+                                    <span>Sistema de Visão</span>
+                                </div>
+                                <button className="control-button" style={{width: '100%', marginBottom: '0.5rem'}}>
+                                    <i className="fas fa-camera"></i> Ativar Câmera
+                                </button>
+                                <button className="control-button" style={{width: '100%', marginBottom: '0.5rem'}}>
+                                    <i className="fas fa-search"></i> Detectar Objetos
+                                </button>
+                                <button className="control-button" style={{width: '100%'}}>
+                                    <i className="fas fa-user-check"></i> Reconhecer Faces
+                                </button>
+                            </div>
+
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-shield-alt"></i>
+                                    <span>Centro de Segurança</span>
+                                </div>
+                                <div style={{marginBottom: '1rem', color: 'var(--success)'}}>
+                                    <i className="fas fa-check-circle"></i> Nível: PROTEGIDO
+                                </div>
+                                <button className="control-button" style={{width: '100%', marginBottom: '0.5rem'}}>
+                                    <i className="fas fa-network-wired"></i> Monitorar Rede
+                                </button>
+                                <button className="control-button" style={{width: '100%'}}>
+                                    <i className="fas fa-virus-slash"></i> Varredura Completa
+                                </button>
+                            </div>
+                        </aside>
+
+                        <section className="central-panel">
+                            <div className="chat-container">
+                                <div className="chat-header">
+                                    <div className="chat-title">INTERFACE DE COMUNICAÇÃO</div>
+                                    <div className="chat-status">AGUARDANDO COMANDO</div>
+                                </div>
+                                <div className="chat-messages">
+                                    {messages.map((message) => (
+                                        <div key={message.id} className={`message ${message.type}`}>
+                                            <div style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem'}}>
+                                                {message.type === 'jarvis' ? 'JARVIS' : 'USUÁRIO'} - {message.timestamp.toLocaleTimeString()}
+                                            </div>
+                                            <div>{message.content}</div>
+                                        </div>
+                                    ))}
+                                    <div ref={messagesEndRef} />
+                                </div>
+                                <div className="chat-input-container">
+                                    <textarea
+                                        className="chat-input"
+                                        placeholder="Digite seu comando ou pergunta..."
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        rows="3"
+                                    />
+                                    <button 
+                                        className="control-button" 
+                                        onClick={sendMessage}
+                                        style={{width: '100%', marginTop: '0.5rem'}}
+                                    >
+                                        <i className="fas fa-paper-plane"></i> Enviar Comando
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <aside className="sidebar">
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-plug"></i>
+                                    <span>Plugins Ativos</span>
+                                </div>
+                                <div className="plugin-list">
+                                    {activePlugins.map((plugin, index) => (
+                                        <div key={index} className="plugin-item">
+                                            <div className="plugin-status"></div>
+                                            <span>{plugin}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-brain"></i>
+                                    <span>Treinamento IA</span>
+                                </div>
+                                <button className="control-button" style={{width: '100%', marginBottom: '0.5rem'}}>
+                                    <i className="fas fa-play"></i> Iniciar Treino
+                                </button>
+                                <button className="control-button" style={{width: '100%', marginBottom: '0.5rem'}}>
+                                    <i className="fas fa-database"></i> Carregar Dados
+                                </button>
+                                <button className="control-button" style={{width: '100%'}}>
+                                    <i className="fas fa-chart-line"></i> Ver Progresso
+                                </button>
+                            </div>
+
+                            <div className="panel">
+                                <div className="panel-header">
+                                    <i className="fas fa-chart-bar"></i>
+                                    <span>Analytics</span>
+                                </div>
+                                <div className="metrics-grid">
+                                    <div className="metric-card">
+                                        <div className="metric-value">1,247</div>
+                                        <div className="metric-label">Comandos</div>
+                                    </div>
+                                    <div className="metric-card">
+                                        <div className="metric-value">98.7%</div>
+                                        <div className="metric-label">Precisão</div>
+                                    </div>
+                                </div>
+                                <button className="control-button" style={{width: '100%', marginTop: '1rem'}}>
+                                    <i className="fas fa-file-alt"></i> Relatório Completo
+                                </button>
+                            </div>
+                        </aside>
+                    </main>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<JarvisApp />, document.getElementById('jarvis-app'));
+    </script>
+</body>
+</html>
