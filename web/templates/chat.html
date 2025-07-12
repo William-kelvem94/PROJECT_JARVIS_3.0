@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 3.0 - Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/jarvis-icon.png') }}" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🤖 JARVIS 3.0</h1>
+                    <span class="subtitle">Chat Inteligente</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="/" class="nav-item">Dashboard</a>
+                    <a href="/chat" class="nav-item active">Chat</a>
+                    <div class="theme-toggle">
+                        <button id="theme-toggle" class="theme-btn">🌙</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <main class="chat-main">
+            <div class="chat-container">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="chat-status">
+                        <div class="status-indicator online"></div>
+                        <div class="status-info">
+                            <span class="status-title">JARVIS Online</span>
+                            <span class="status-subtitle" id="personality-display">Assistente Profissional</span>
+                        </div>
+                    </div>
+                    <div class="chat-controls">
+                        <button class="control-btn" id="personality-btn">👤 Personalidade</button>
+                        <button class="control-btn" id="clear-chat-btn">🗑️ Limpar</button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message assistant-message welcome-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Olá! Eu sou o JARVIS, seu assistente virtual inteligente. 
+                                Como posso ajudar você hoje? Posso monitorar seu sistema, 
+                                responder perguntas e executar tarefas para você.
+                            </div>
+                            <div class="message-time">Agora mesmo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <div class="input-toolbar">
+                        <button class="toolbar-btn" id="voice-btn">🎤</button>
+                        <button class="toolbar-btn" id="attachment-btn">📎</button>
+                        <button class="toolbar-btn" id="emoji-btn">😊</button>
+                    </div>
+                    <div class="input-area">
+                        <textarea 
+                            id="chat-input" 
+                            placeholder="Digite sua mensagem aqui..."
+                            rows="1"
+                        ></textarea>
+                        <button id="send-btn" class="send-btn">
+                            <span class="send-icon">📤</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="chat-sidebar">
+                <!-- Quick System Info -->
+                <div class="sidebar-section">
+                    <h3>⚡ Status do Sistema</h3>
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <span class="stat-label">CPU</span>
+                            <span class="stat-value" id="quick-cpu">0%</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-label">RAM</span>
+                            <span class="stat-value" id="quick-memory">0%</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-label">Bateria</span>
+                            <span class="stat-value" id="quick-battery">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personality Settings -->
+                <div class="sidebar-section">
+                    <h3>👤 Personalidade</h3>
+                    <div class="personality-options" id="personality-options">
+                        <!-- Personalidades serão carregadas via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Quick Commands -->
+                <div class="sidebar-section">
+                    <h3>🚀 Comandos Rápidos</h3>
+                    <div class="quick-commands">
+                        <button class="quick-cmd" onclick="sendQuickMessage('Como está o sistema?')">
+                            💻 Status do Sistema
+                        </button>
+                        <button class="quick-cmd" onclick="sendQuickMessage('Qual é o uso da CPU?')">
+                            🖥️ CPU
+                        </button>
+                        <button class="quick-cmd" onclick="sendQuickMessage('Como está a memória?')">
+                            🧠 Memória
+                        </button>
+                        <button class="quick-cmd" onclick="sendQuickMessage('Quanto tempo ligado?')">
+                            ⏰ Uptime
+                        </button>
+                        <button class="quick-cmd" onclick="sendQuickMessage('Temperatura do sistema')">
+                            🌡️ Temperatura
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="sidebar-section">
+                    <h3>📋 Atividade Recente</h3>
+                    <div class="activity-log" id="activity-log">
+                        <div class="activity-item">
+                            <span class="activity-time">Agora</span>
+                            <span class="activity-text">Sistema iniciado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Personality Modal -->
+    <div class="modal" id="personality-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 Escolher Personalidade</h2>
+                <button class="close-btn" onclick="closePersonalityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="personality-list" id="personality-list">
+                    <!-- Personalidades serão carregadas aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+</html>

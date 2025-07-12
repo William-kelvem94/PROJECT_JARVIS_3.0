@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 3.0 - AI Control Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_control.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/jarvis-icon.svg') }}" type="image/svg+xml">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🧠 JARVIS AI CONTROL</h1>
+                    <span class="subtitle">Central de Comando de Inteligência Artificial</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="/" class="nav-item">Dashboard</a>
+                    <a href="/chat" class="nav-item">Chat</a>
+                    <a href="/ai-control" class="nav-item active">AI Control</a>
+                    <div class="ai-status-indicator">
+                        <span id="ai-status-light" class="status-light"></span>
+                        <span id="ai-status-text">Iniciando...</span>
+                    </div>
+                    <div class="theme-toggle">
+                        <button id="theme-toggle" class="theme-btn">🌙</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- AI Models Panel -->
+            <section class="models-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-robot"></i> Modelos de IA Disponíveis</h2>
+                    <button id="refresh-models" class="btn-action">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+                <div class="models-grid" id="models-grid">
+                    <!-- Models will be loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- AI Control Dashboard -->
+            <section class="control-dashboard">
+                <div class="control-row">
+                    <!-- Model Selection -->
+                    <div class="control-card model-selector">
+                        <div class="card-header">
+                            <h3><i class="fas fa-brain"></i> Seleção de Modelo</h3>
+                        </div>
+                        <div class="card-content">
+                            <select id="active-model" class="model-select">
+                                <option value="">Carregando modelos...</option>
+                            </select>
+                            <div class="model-info" id="model-info">
+                                <div class="info-item">
+                                    <span class="label">Tipo:</span>
+                                    <span class="value" id="model-type">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Tamanho:</span>
+                                    <span class="value" id="model-size">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Especialidade:</span>
+                                    <span class="value" id="model-specialty">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personality Selection -->
+                    <div class="control-card personality-selector">
+                        <div class="card-header">
+                            <h3><i class="fas fa-masks-theater"></i> Personalidade</h3>
+                        </div>
+                        <div class="card-content">
+                            <select id="personality" class="personality-select">
+                                <option value="assistant">🤖 Assistente Padrão</option>
+                                <option value="creative">🎨 Criativo</option>
+                                <option value="analytical">📊 Analítico</option>
+                                <option value="technical">⚙️ Técnico</option>
+                                <option value="friendly">😊 Amigável</option>
+                                <option value="professional">💼 Profissional</option>
+                                <option value="expert">🎓 Especialista</option>
+                            </select>
+                            <div class="personality-description" id="personality-description">
+                                Assistente equilibrado para tarefas gerais
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Tools -->
+                    <div class="control-card ai-tools">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> Ferramentas IA</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="tools-grid">
+                                <button class="tool-btn" data-tool="code">
+                                    <i class="fas fa-code"></i>
+                                    <span>Gerador de Código</span>
+                                </button>
+                                <button class="tool-btn" data-tool="analyze">
+                                    <i class="fas fa-search"></i>
+                                    <span>Analisador de Texto</span>
+                                </button>
+                                <button class="tool-btn" data-tool="translate">
+                                    <i class="fas fa-language"></i>
+                                    <span>Tradutor</span>
+                                </button>
+                                <button class="tool-btn" data-tool="summarize">
+                                    <i class="fas fa-compress"></i>
+                                    <span>Resumidor</span>
+                                </button>
+                                <button class="tool-btn" data-tool="explain">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Explicador</span>
+                                </button>
+                                <button class="tool-btn" data-tool="debug">
+                                    <i class="fas fa-bug"></i>
+                                    <span>Debug de Código</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Interface -->
+            <section class="chat-interface">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3><i class="fas fa-comments"></i> Chat com IA</h3>
+                        <div class="chat-controls">
+                            <span class="model-indicator" id="chat-model-indicator">jarvis-personal</span>
+                            <button id="clear-chat" class="btn-secondary">
+                                <i class="fas fa-trash"></i> Limpar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message ai-message">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                <strong>JARVIS:</strong> Olá! Estou pronto para ajudar. Selecione um modelo e personalidade para começar nossa conversa.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="input-wrapper">
+                            <textarea id="chat-input" placeholder="Digite sua mensagem aqui..." rows="3"></textarea>
+                            <button id="send-message" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="input-controls">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="stream-mode" checked>
+                                <span>Resposta em tempo real</span>
+                            </label>
+                            <div class="model-quick-select">
+                                <button class="quick-model" data-model="jarvis-personal">JARVIS</button>
+                                <button class="quick-model" data-model="deepseek-coder">CODE</button>
+                                <button class="quick-model" data-model="mixtral">MIXTRAL</button>
+                                <button class="quick-model" data-model="mistral">MISTRAL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Status -->
+            <section class="system-status">
+                <div class="status-row">
+                    <!-- Ollama Status -->
+                    <div class="status-card ollama-status">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> Ollama Server</h3>
+                            <span class="status-badge" id="ollama-status">Verificando...</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric-item">
+                                <span class="metric-label">Modelos Carregados:</span>
+                                <span class="metric-value" id="loaded-models-count">0</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Memória GPU:</span>
+                                <span class="metric-value" id="gpu-memory">N/A</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Última Resposta:</span>
+                                <span class="metric-value" id="last-response-time">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="status-card performance-metrics">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tachometer-alt"></i> Performance</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="performance-chart" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Model Downloads -->
+                    <div class="status-card downloads-status">
+                        <div class="card-header">
+                            <h3><i class="fas fa-download"></i> Downloads</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="download-progress">
+                                <!-- Dynamic download progress -->
+                            </div>
+                            <button id="download-models" class="btn-primary">
+                                <i class="fas fa-download"></i> Baixar Modelos Recomendados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ai_control.js') }}"></script>
+</body>
+</html>

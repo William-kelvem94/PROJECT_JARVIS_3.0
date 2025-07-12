@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 3.0 - Assistente Virtual Inteligente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/jarvis-icon.png') }}" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🤖 JARVIS 3.0</h1>
+                    <span class="subtitle">Assistente Virtual Inteligente</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="/" class="nav-item active">Dashboard</a>
+                    <a href="/chat" class="nav-item">Chat</a>
+                    <div class="theme-toggle">
+                        <button id="theme-toggle" class="theme-btn">🌙</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- System Status Cards -->
+            <section class="status-cards">
+                <div class="card cpu-card">
+                    <div class="card-header">
+                        <h3>🖥️ CPU</h3>
+                        <span class="status-indicator" id="cpu-status"></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-value" id="cpu-percent">0%</div>
+                        <div class="metric-label">Uso do Processador</div>
+                        <div class="progress-container">
+                            <div class="progress-fill" id="cpu-progress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card memory-card">
+                    <div class="card-header">
+                        <h3>🧠 Memória</h3>
+                        <span class="status-indicator" id="memory-status"></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-value" id="memory-percent">0%</div>
+                        <div class="metric-label">Uso da RAM</div>
+                        <div class="details-text" id="memory-details">0 GB / 0 GB</div>
+                        <div class="progress-container">
+                            <div class="progress-fill" id="memory-progress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card disk-card">
+                    <div class="card-header">
+                        <h3>💾 Armazenamento</h3>
+                        <span class="status-indicator" id="disk-status"></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-value" id="disk-percent">0%</div>
+                        <div class="metric-label">Uso do Disco</div>
+                        <div class="details-text" id="disk-details">0 GB / 0 GB</div>
+                        <div class="progress-container">
+                            <div class="progress-fill" id="disk-progress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card battery-card">
+                    <div class="card-header">
+                        <h3>🔋 Bateria</h3>
+                        <span class="status-indicator" id="battery-status"></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-value" id="battery-percent">N/A</div>
+                        <div class="metric-label">Nível da Bateria</div>
+                        <div class="details-text" id="battery-details">Status desconhecido</div>
+                        <div class="progress-container">
+                            <div class="progress-fill" id="battery-progress"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>📈 Performance em Tempo Real</h3>
+                        <div class="chart-controls">
+                            <button id="start-monitoring" class="btn btn-success">▶️ Iniciar</button>
+                            <button id="stop-monitoring" class="btn btn-secondary">⏹️ Parar</button>
+                        </div>
+                    </div>
+                    <canvas id="performance-chart"></canvas>
+                </div>
+
+                <div class="temperature-container">
+                    <div class="chart-header">
+                        <h3>🌡️ Temperatura do Sistema</h3>
+                    </div>
+                    <div class="temperature-display">
+                        <div class="temp-gauge">
+                            <div class="temp-value" id="temp-value">--°C</div>
+                            <div class="temp-label">CPU</div>
+                        </div>
+                        <canvas id="temperature-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Network Activity -->
+            <section class="network-section">
+                <div class="network-container">
+                    <div class="chart-header">
+                        <h3>🌐 Atividade de Rede</h3>
+                    </div>
+                    <div class="network-stats">
+                        <div class="network-metric">
+                            <span class="metric-icon">⬆️</span>
+                            <div class="metric-info">
+                                <div class="metric-value" id="network-sent">0 MB/s</div>
+                                <div class="metric-label">Upload</div>
+                            </div>
+                        </div>
+                        <div class="network-metric">
+                            <span class="metric-icon">⬇️</span>
+                            <div class="metric-info">
+                                <div class="metric-value" id="network-recv">0 MB/s</div>
+                                <div class="metric-label">Download</div>
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="network-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="actions-section">
+                <div class="actions-container">
+                    <h3>⚡ Ações Rápidas</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="openChat()">
+                            💬 Conversar com JARVIS
+                        </button>
+                        <button class="action-btn" onclick="refreshData()">
+                            🔄 Atualizar Dados
+                        </button>
+                        <button class="action-btn" onclick="exportData()">
+                            📊 Exportar Relatório
+                        </button>
+                        <button class="action-btn" onclick="openSettings()">
+                            ⚙️ Configurações
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <span id="connection-status">🔴 Desconectado</span>
+                <span id="last-update">Última atualização: --</span>
+                <span id="uptime">Uptime: --</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "ai": {
+    "model_name": "gpt-3.5-turbo",
+    "api_key": null,
+    "max_tokens": 2000,
+    "temperature": 0.7,
+    "local_model_path": null,
+    "use_local_model": false
+  },
+  "system": {
+    "monitoring_interval": 4,
+    "auto_cleanup": true,
+    "max_memory_usage": 80.0,
+    "max_cpu_usage": 90.0,
+    "log_level": "INFO"
+  },
+  "web": {
+    "host": "localhost",
+    "port": 5000,
+    "debug": false,
+    "secret_key": "jarvis-secret-key-change-me-in-production",
+    "enable_cors": true
+  },
+  "audio": {
+    "input_device": null,
+    "output_device": null,
+    "sample_rate": 16000,
+    "chunk_size": 1024,
+    "tts_voice": "pt-br",
+    "tts_speed": 1.0
+  }
+}

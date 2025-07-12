@@ -1,6 +1,0 @@
-{
-    "default": {"tone": "neutro", "style": "padrão"},
-    "formal": {"tone": "formal", "style": "profissional"},
-    "descontraido": {"tone": "informal", "style": "amigável"},
-    "tecnico": {"tone": "técnico", "style": "objetivo"}
-}

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS 3.0 - IA Local</title>
+    <style>
+        :root {
+            --primary-color: #00d4ff;
+            --secondary-color: #0099cc;
+            --bg-dark: #0a0e1a;
+            --bg-medium: #162233;
+            --bg-light: #1e2d42;
+            --text-primary: #ffffff;
+            --text-secondary: #b0c4de;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --error: #ff4444;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-medium);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-medium);
+            border: 1px solid var(--border);
+        }
+
+        /* Chat Area */
+        .chat-area {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            max-width: 80%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user .message-avatar {
+            background: var(--primary-color);
+        }
+
+        .assistant .message-avatar {
+            background: var(--success);
+        }
+
+        .message-content {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .user .message-content {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 1rem 2rem;
+            background: var(--bg-light);
+            border-top: 1px solid var(--border);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .input-box {
+            flex: 1;
+            background: var(--bg-medium);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-box:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            width: 60px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-light);
+            border-left: 1px solid var(--border);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .personality-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .personality-option {
+            padding: 0.8rem;
+            background: var(--bg-medium);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .personality-option.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .personality-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .personality-name {
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .personality-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .personality-option.active .personality-desc {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .system-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: var(--bg-medium);
+            border-radius: 6px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .input-area {
+                padding: 1rem;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                🧠 JARVIS 3.0 - IA Local
+            </div>
+            <div class="status-panel">
+                <div class="status-item">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="connection-status">Conectando...</span>
+                </div>
+                <div class="status-item">
+                    <span>🤖 <span id="current-model">jarvis-personal</span></span>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="clearChat()">🗑️ Limpar</button>
+                <button class="btn" onclick="toggleSidebar()">⚙️ Config</button>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-main">
+                <div class="messages-container" id="messages-container">
+                    <!-- Welcome Message -->
+                    <div class="message assistant">
+                        <div class="message-avatar">🧠</div>
+                        <div class="message-content">
+                            Olá! Eu sou o JARVIS 3.0, seu assistente de IA local. 
+                            
+                            🎯 **Sistema Configurado:**
+                            • Ollama rodando localmente
+                            • Modelo personalizado ativo
+                            • Interface WebUI disponível
+                            
+                            Como posso ajudá-lo hoje?
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">🎭 Personalidades</div>
+                    <div class="personality-selector">
+                        <div class="personality-option active" data-personality="assistente">
+                            <div class="personality-name">👔 Assistente Profissional</div>
+                            <div class="personality-desc">Formal, direto e eficiente</div>
+                        </div>
+                        <div class="personality-option" data-personality="amigavel">
+                            <div class="personality-name">😊 Amigável</div>
+                            <div class="personality-desc">Casual e descontraído</div>
+                        </div>
+                        <div class="personality-option" data-personality="tecnico">
+                            <div class="personality-name">🔧 Técnico</div>
+                            <div class="personality-desc">Especialista em tecnologia</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">📊 Status do Sistema</div>
+                    <div class="system-info">
+                        <div class="info-item">
+                            <span>Ollama</span>
+                            <span id="ollama-status">✅ Online</span>
+                        </div>
+                        <div class="info-item">
+                            <span>WebUI</span>
+                            <span id="webui-status">✅ Online</span>
+                        </div>
+                        <div class="info-item">
+                            <span>Jupyter</span>
+                            <span id="jupyter-status">✅ Online</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">🔗 Links Rápidos</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="btn btn-secondary" onclick="openWebUI()">🌐 Open WebUI</button>
+                        <button class="btn btn-secondary" onclick="openJupyter()">📊 Jupyter</button>
+                        <button class="btn btn-secondary" onclick="showSystemInfo()">💻 Sistema</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <textarea 
+                    id="message-input" 
+                    class="input-box" 
+                    placeholder="Digite sua mensagem aqui... (Shift+Enter para nova linha)"
+                    rows="1"
+                ></textarea>
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                    📤
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPersonality = 'assistente';
+        let isConnected = false;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            checkSystemStatus();
+            focusInput();
+        });
+
+        function setupEventListeners() {
+            // Input handling
+            const input = document.getElementById('message-input');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                
+                // Auto-resize
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // Personality selection
+            document.querySelectorAll('.personality-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.personality-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPersonality = this.dataset.personality;
+                    
+                    const personalityNames = {
+                        'assistente': 'Assistente Profissional',
+                        'amigavel': 'Amigável',
+                        'tecnico': 'Técnico'
+                    };
+                    
+                    addSystemMessage(`Personalidade alterada para: ${personalityNames[currentPersonality]}`);
+                });
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            try {
+                // Send to backend
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        personality: currentPersonality
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Remove typing indicator and add response
+                hideTypingIndicator();
+                addMessage('assistant', data.response);
+                
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('assistant', `❌ Erro: ${error.message}\n\nTentando via Ollama direto...`);
+                
+                // Fallback: try direct Ollama
+                try {
+                    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model: 'jarvis-personal:latest',
+                            prompt: message,
+                            stream: false
+                        })
+                    });
+                    
+                    const ollamaData = await ollamaResponse.json();
+                    addMessage('assistant', `🧠 Ollama Direto: ${ollamaData.response}`);
+                    
+                } catch (ollamaError) {
+                    addMessage('assistant', `❌ Erro no Ollama: ${ollamaError.message}\n\nVerifique se os containers estão rodando: docker ps`);
+                }
+            }
+            
+            focusInput();
+        }
+
+        function addMessage(type, content) {
+            const container = document.getElementById('messages-container');
+            const time = new Date().toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = type === 'user' ? '👤' : '🧠';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    ${content}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addSystemMessage(content) {
+            const container = document.getElementById('messages-container');
+            const time = new Date().toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.style.opacity = '0.7';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">⚙️</div>
+                <div class="message-content">
+                    ${content}
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('messages-container');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typing-indicator';
+            
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🧠</div>
+                <div class="message-content loading">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span style="margin-left: 10px;">JARVIS está pensando...</span>
+                </div>
+            `;
+            
+            container.appendChild(typingDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function checkSystemStatus() {
+            const endpoints = [
+                { id: 'ollama-status', url: 'http://localhost:11434/api/tags' },
+                { id: 'webui-status', url: 'http://localhost:3000' },
+                { id: 'jupyter-status', url: 'http://localhost:8888' }
+            ];
+            
+            let allOnline = true;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url, { mode: 'no-cors' });
+                    document.getElementById(endpoint.id).textContent = '✅ Online';
+                } catch (error) {
+                    document.getElementById(endpoint.id).textContent = '❌ Offline';
+                    allOnline = false;
+                }
+            }
+            
+            // Update connection status
+            const statusDot = document.getElementById('status-dot');
+            const connectionStatus = document.getElementById('connection-status');
+            
+            if (allOnline) {
+                statusDot.style.background = 'var(--success)';
+                connectionStatus.textContent = 'Online';
+                isConnected = true;
+            } else {
+                statusDot.style.background = 'var(--warning)';
+                connectionStatus.textContent = 'Parcial';
+                isConnected = false;
+            }
+        }
+
+        function clearChat() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = `
+                <div class="message assistant">
+                    <div class="message-avatar">🧠</div>
+                    <div class="message-content">
+                        Chat limpo! Como posso ajudá-lo?
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openWebUI() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        function openJupyter() {
+            window.open('http://localhost:8888', '_blank');
+        }
+
+        function showSystemInfo() {
+            const systemMessage = `
+🖥️ **Informações do Sistema**
+
+**Containers Docker:**
+• Ollama: http://localhost:11434
+• WebUI: http://localhost:3000  
+• Jupyter: http://localhost:8888
+
+**Modelos Disponíveis:**
+• jarvis-personal:latest (Personalizado)
+• llama3.2:1b (Base)
+
+**Comandos Úteis:**
+\`docker ps\` - Ver containers
+\`docker logs Ollama_IA_LOCAL\` - Logs do Ollama
+\`docker exec Ollama_IA_LOCAL ollama list\` - Listar modelos
+
+**Personalidades:**
+• Assistente: Formal e profissional
+• Amigável: Casual e descontraído
+• Técnico: Especialista em tecnologia`;
+
+            addMessage('assistant', systemMessage);
+        }
+
+        function focusInput() {
+            document.getElementById('message-input').focus();
+        }
+
+        // Check status periodically
+        setInterval(checkSystemStatus, 30000);
+    </script>
+</body>
+</html>

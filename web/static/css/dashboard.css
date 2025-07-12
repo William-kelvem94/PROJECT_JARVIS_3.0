@@ -1,0 +1,88 @@
+/* Estilos específicos do Dashboard */
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Performance Chart Específico */
+#performance-chart {
+    height: 300px;
+}
+
+#temperature-chart {
+    height: 200px;
+}
+
+#network-chart {
+    height: 250px;
+}
+
+/* Melhorias nos cards */
+.cpu-card .progress-fill {
+    background: linear-gradient(90deg, #00ff88, #ffaa00, #ff4444);
+}
+
+.memory-card .progress-fill {
+    background: linear-gradient(90deg, #00d4ff, #0099cc);
+}
+
+.disk-card .progress-fill {
+    background: linear-gradient(90deg, #9c27b0, #673ab7);
+}
+
+.battery-card .progress-fill {
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+}
+
+/* Status específicos */
+.status-indicator.success {
+    background: var(--accent-success);
+    box-shadow: 0 0 10px var(--accent-success);
+}
+
+.status-indicator.warning {
+    background: var(--accent-warning);
+    box-shadow: 0 0 10px var(--accent-warning);
+}
+
+.status-indicator.danger {
+    background: var(--accent-danger);
+    box-shadow: 0 0 10px var(--accent-danger);
+}
+
+/* Animações específicas do dashboard */
+@keyframes dataUpdate {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.metric-value.updating {
+    animation: dataUpdate 1s ease-in-out;
+}
+
+/* Responsivo específico */
+@media (max-width: 1200px) {
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+    }
+}

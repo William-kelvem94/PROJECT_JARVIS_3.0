@@ -1,0 +1,4 @@
+2025-06-26 14:54:27 - JARVIS_MAIN - ℹ️ [32mINFO[0m - 🚀 Iniciando JARVIS 3.0... - [main.py:46]
+2025-06-26 14:54:27 - JARVIS_MAIN - ℹ️ [32mINFO[0m - 🌐 Modo Web - Servidor iniciando em http://localhost:5000 - [main.py:49]
+2025-06-26 14:54:27 - JARVIS - ℹ️ [32mINFO[0m - 🌐 Servidor web iniciando em http://localhost:5000 - [app.py:292]
+2025-06-26 14:54:27 - JARVIS - ℹ️ [32mINFO[0m - Monitoramento de sistema iniciado - [app.py:247]
