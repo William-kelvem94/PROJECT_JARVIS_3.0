@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import futuristic fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+/* Global styles */
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  body {
+    @apply bg-jarvis-darker text-white font-sans antialiased;
+    background: radial-gradient(ellipse at top, #0A0E1A 0%, #050812 50%, #000000 100%);
+    min-height: 100vh;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Glassmorphism base */
+  .glass {
+    @apply bg-glass-bg backdrop-blur-xl border border-glass-border;
+  }
+
+  .glass-hover {
+    @apply transition-all duration-300 hover:bg-glass-hover hover:border-white/30;
+  }
+
+  /* Holographic effects */
+  .holographic {
+    background: linear-gradient(
+      45deg,
+      rgba(0, 212, 255, 0.1) 0%,
+      rgba(0, 255, 255, 0.1) 25%,
+      rgba(255, 0, 255, 0.1) 50%,
+      rgba(255, 255, 0, 0.1) 75%,
+      rgba(0, 212, 255, 0.1) 100%
+    );
+    background-size: 400% 400%;
+    animation: holographicShift 8s ease-in-out infinite;
+  }
+
+  /* Matrix theme */
+  .matrix-bg {
+    background: linear-gradient(to bottom, #000000, #001100);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .matrix-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(90deg, transparent 0%, rgba(0, 255, 0, 0.1) 50%, transparent 100%),
+      linear-gradient(0deg, transparent 0%, rgba(0, 255, 0, 0.1) 50%, transparent 100%);
+    background-size: 20px 20px;
+    animation: matrixGrid 10s linear infinite;
+  }
+
+  /* Neon effects */
+  .neon-text {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .neon-border {
+    box-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      inset 0 0 5px currentColor;
+  }
+
+  /* Chat bubble styles */
+  .chat-bubble-user {
+    @apply glass glass-hover rounded-2xl rounded-br-sm p-4 ml-8;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 255, 0.1));
+  }
+
+  .chat-bubble-ai {
+    @apply glass glass-hover rounded-2xl rounded-bl-sm p-4 mr-8;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply glass glass-hover px-6 py-3 rounded-xl font-medium text-jarvis-blue border-jarvis-blue/50;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 255, 0.05));
+  }
+
+  .btn-primary:hover {
+    @apply neon-border text-white;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 255, 0.1));
+  }
+
+  .btn-secondary {
+    @apply glass glass-hover px-6 py-3 rounded-xl font-medium text-white/80 border-white/20;
+  }
+
+  /* Input styles */
+  .input-glass {
+    @apply glass glass-hover w-full px-4 py-3 rounded-xl bg-white/5 border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-jarvis-blue/50 focus:bg-white/10;
+  }
+
+  /* Sidebar styles */
+  .sidebar-glass {
+    @apply glass border-r border-white/10;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  }
+
+  /* Card styles */
+  .card-glass {
+    @apply glass glass-hover rounded-2xl p-6;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #00D4FF, #00FFFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-jarvis {
+    background: linear-gradient(135deg, #00D4FF, #00FFFF);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Animations */
+@keyframes holographicShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes matrixGrid {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(20px, 20px); }
+}
+
+/* Theme-specific styles */
+.theme-dark {
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #1E293B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+}
+
+.theme-light {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+}
+
+.theme-neon {
+  --bg-primary: #000000;
+  --bg-secondary: #1A1A1A;
+  --text-primary: #00FF00;
+  --text-secondary: #00AA00;
+}
+
+.theme-matrix {
+  --bg-primary: #000000;
+  --bg-secondary: #001100;
+  --text-primary: #00FF00;
+  --text-secondary: #00AA00;
+}
